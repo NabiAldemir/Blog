@@ -1,0 +1,266 @@
+﻿@model IEnumerable<EntityLayer.Concrete.Category>
+@* @using X.PagedList
+@using X.PagedList.Mvc.Core *@
+@{
+	ViewData["Title"] = "Index";
+	Layout = "~/Views/Shared/AdminLayout.cshtml";
+}
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addModalLabel">Yeni Kategori Oluştur</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="addForm" form method="post">
+					<div class="mb-12">
+						<label for="name" class="form-label">Kategori Adı</label>
+						<input type="text" class="form-control" name="CategoryName" required>
+					</div>
+					<div class="mb-12">
+						<label for="name" class="form-label">Kategori Açıklaması</label>
+						<input type="text" class="form-control" name="CategoryDescription" required>
+					</div>
+					<br />
+					<button type="submit" class="btn btn-primary">Kaydet</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addModalLabel">Kategori Düzenle</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="updateForm" form method="post">
+					<input type="text" class="form-control" id="categoryId" name="CategoryID" hidden>
+					<div class="mb-12">
+						<label for="name" class="form-label">Kategori Adı</label>
+						<input type="text" class="form-control" id="name" name="CategoryName" required>
+					</div>
+					<div class="mb-12">
+						<label for="name" class="form-label">Kategori Açıklaması</label>
+						<input type="text" class="form-control" id="description" name="CategoryDescription" required>
+					</div>
+					<br />
+					<button type="submit" class="btn btn-primary">Kaydet</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<table class="table table-bordered" id="categoryTable">
+	<tr>
+		<th>#</th>
+		<th>Kategori Adı</th>
+		<th>Kategori Durumu</th>
+		<th>Pasif Yap</th>
+		<th>Aktif Yap</th>
+		<th>Düzenle</th>
+		<th>Sil</th>
+	</tr>
+	@foreach (var item in Model)
+	{
+		<tr>
+			<th>@item.CategoryID</th>
+			<td>@item.CategoryName</td>
+			<td>@item.CategoryStatus</td>
+			<td>
+				<button id="buttonPassive" data-id="@item.CategoryID" onclick="doPassive(@item.CategoryID)" class="btn btn-primary">Pasif Yap</button>
+			</td>
+			<td>
+				<button id="buttonActive" class="btn btn-info" onclick="doActive(@item.CategoryID)">Aktif Yap</button>
+			</td>
+			<td>
+				<button id="buttonEdit" class="btn btn-success" onclick="updateCategory(this)" data-catName="@item.CategoryName" data-catDes="@item.CategoryDescription" data-id="@item.CategoryID">Düzenle</button>
+			</td>
+			<td>
+				<button id="buttonDelete" onclick="confirmDelete(@item.CategoryID)" class="btn btn-danger">Sil</button>
+			</td>
+		</tr>
+	}
+
+</table>
+<button onclick="openAddModal(this)" class="btn btn-primary">Kategori Ekle</button>
+<br />
+<br />
+@* @Html.PagedListPager((IPagedList)Model, page => Url.Action("Category", "Admin", new { page })) *@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@section scripts {
+	<script>
+		function openAddModal(button)
+		{
+			$("#addModal").modal("show");
+		}
+
+		document.addEventListener("DOMContentLoaded", function() {
+				$("#addForm").submit(function (e) {
+					e.preventDefault();
+
+					$.ajax({
+						type: "POST",
+						url: "/Admin/Category/AddCategory",
+						data: $(this).serialize(),
+						dataType: "json", // 🟢 JSON formatında beklediğimizi belirtiyoruz
+						success: function (response) {
+							if (response.success) {
+								toastr.success("Kategori Oluşturma Başarılı!");
+								$("#addModal").modal("hide");
+									$("#categoryTable").load(location.href + " #categoryTable");
+							} else {
+								toastr.error("Kategori Oluşturma Başarısız!");
+							}
+						},
+						error: function () {
+							Swal.fire("Hata!", "İşlem sırasında hata oluştu!", "error");
+						}
+					});
+				});
+			});
+
+				function doActive(activeID){
+								Swal.fire({
+								title: 'Bu rolü aktif yapmak istediğinizden emin misiniz?',
+								text: "Bu işlem geri alınamaz!",
+								icon: 'warning',
+								showCancelButton: true,
+								confirmButtonColor: '#d33',
+								cancelButtonColor: '#3085d6',
+								confirmButtonText: 'Evet, aktif yap!',
+								cancelButtonText: 'İptal'
+							}).then((result) => {
+								if (result.isConfirmed) {
+									$.ajax({
+											url: "/Admin/Category/DoActive/" + activeID,
+								method: 'POST',
+								success: function (response) {
+									if (response.success) {
+										toastr.success('Aktiif Yapma İşlemi Başarılı!');
+													$("#categoryTable").load(location.href + " #categoryTable");
+
+									} else {
+										toastr.error(response.errors.join('\n'));
+									}
+								},
+								error: function () {
+									toastr.error('Bir Hata Oluştu!');
+								}
+							});
+								}
+							});
+						}
+
+				 function doPassive(passiveID){
+							Swal.fire({
+							title: 'Bu rolü pasif yapmak istediğinizden emin misiniz?',
+							text: "Bu işlem geri alınamaz!",
+							icon: 'warning',
+							showCancelButton: true,
+							confirmButtonColor: '#d33',
+							cancelButtonColor: '#3085d6',
+							confirmButtonText: 'Evet, sil!',
+							cancelButtonText: 'İptal'
+						}).then((result) => {
+							if (result.isConfirmed) {
+								$.ajax({
+									url: "/Admin/Category/DoPassive/" + passiveID,
+							method: 'POST',
+							success: function (response) {
+								if (response.success) {
+									toastr.success('Pasif Yapma İşlemi Başarılı!');
+												$("#categoryTable").load(location.href + " #categoryTable");
+
+								} else {
+									toastr.error(response.errors.join('\n'));
+								}
+							},
+							error: function () {
+								toastr.error('Bir Hata Oluştu!');
+							}
+						});
+							}
+						});
+					}
+
+				 function confirmDelete(categoryID){
+						Swal.fire({
+						title: 'Bu rolü silmek istediğinizden emin misiniz?',
+						text: "Bu işlem geri alınamaz!",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonColor: '#d33',
+						cancelButtonColor: '#3085d6',
+						confirmButtonText: 'Evet, sil!',
+						cancelButtonText: 'İptal'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							$.ajax({
+							url: "/Admin/Category/Delete/" + categoryID,
+						method: 'POST',
+						success: function (response) {
+							if (response.success) {
+								toastr.success('Silme İşlemi Başarılı!');
+											$("#categoryTable").load(location.href + " #categoryTable");
+
+							} else {
+								toastr.error(response.errors.join('\n'));
+							}
+						},
+						error: function () {
+							toastr.error('Bir Hata Oluştu!');
+						}
+					});
+						}
+					});
+				}
+
+				$(document).ready(function () {
+			    $("#updateForm").submit(function (e) {
+				e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+				var formData = {
+					CategoryName:$("#name").val(),
+					CategoryDescription:$("#description").val(),
+					CategoryID:$("#categoryId").val(),
+				};
+
+				$.ajax({
+					type: "POST",
+					url: "/Admin/Category/Update",
+					data: formData,
+					success: function (response) {
+							if (response.success) {
+								toastr.success("Güncelleme İşlemi Başarılı!");
+								$("#updateModal").modal("hide");
+								$("#categoryTable").load(location.href + " #categoryTable");
+							}  else {
+							toastr.error("Güncelleme İşlemi Başarısız!");
+						}
+					},
+					error: function () {
+						Swal.fire("Hata!", "Bir hata oluştu, lütfen tekrar deneyin.", "error");
+					}
+				});
+			});
+		});
+
+				function updateCategory(button){
+					let catName = button.getAttribute("data-catName");
+					let catDes = button.getAttribute("data-catDes");
+					let id =button.getAttribute("data-id")
+					document.getElementById("name").value=catName;
+					document.getElementById("description").value=catDes;
+					document.getElementById("categoryId").value=id;
+					$("#updateModal").modal("show");
+				}
+	</script>
+}

@@ -1,0 +1,149 @@
+﻿@model IEnumerable<EntityLayer.Concrete.Message2>
+@{
+	ViewData["Title"] = "Inbox";
+	Layout = "~/Views/Shared/AdminLayout.cshtml";
+}
+<html>
+	<head>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+	<link href="css/plugins/iCheck/custom.css" rel="stylesheet">
+	<link href="css/animate.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+	</head>
+
+<body>
+	<div class="wrapper wrapper-content">
+		<div class="row">
+			<div class="col-lg-3">
+				<div class="ibox ">
+					<div class="ibox-content mailbox-content">
+						<div class="file-manager">
+							<a class="btn btn-block btn-primary compose-mail" href="/Admin/AdminMessage/SendMessage">Mesaj Gönder</a>
+							<div class="space-25"></div>
+							<h5>Folders</h5>
+							<ul class="folder-list m-b-md" style="padding: 0">
+								<li><a href="/Admin/AdminMessage/Inbox"> <i class="fa fa-inbox "></i> Gelen Mesajlar <span class="label label-warning float-right">@ViewBag.v1</span> </a></li>
+								<li><a href="/Admin/AdminMessage/SendBox"> <i class="fa fa-envelope-o"></i> Giden Mesajlar</a></li>
+							</ul>
+							<div class="clearfix"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-9 animated fadeInRight">
+				<div class="mail-box-header">
+					<h2>
+						Gelen Kutusu(@ViewBag.v1)
+					</h2>
+					<div class="mail-tools tooltip-demo m-t-md">
+						<div class="btn-group float-right">
+							<button class="btn btn-white btn-sm"><i class="fa fa-arrow-left"></i></button>
+							<button class="btn btn-white btn-sm"><i class="fa fa-arrow-right"></i></button>
+
+						</div>
+						<button class="btn btn-white btn-sm" data-toggle="tooltip" data-placement="left" title="Yenile"><i class="fa fa-refresh"></i> Yenile</button>
+
+					</div>
+				</div>
+				<div class="mail-box">
+
+					<table class="table table-hover table-mail">
+						<thead>
+							<tr>
+								<th class="text-center mail-ontact">Gönderen</th>
+								<th class="text-center mail-subject">Konu</th>
+								<th class="text-center mail-date">Tarih</th>
+								<th class="text-center">Sil</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var item in Model)
+							{
+								<tr class="unread">
+									<td class="text-center mail-ontact"><a href="mail_detail.html">@item.SenderUser.NameSurname</a></td>
+									<td class="text-center mail-subject"><a href="mail_detail.html">@item.Subject</a></td>
+									<td class="text-center mail-date">@(((DateTime)item.MessageDate).ToString("dd-MMM-yyyy"))</td>
+									<td class="text-center">
+										<button class="btn btn-white btn-sm" onclick="confirmDelete(@item.MessageID,event)" title="Çöp Kutusuna Taşı" id="deleteBtn">
+											<i class="fa fa-trash-o"></i>
+											SİL
+										</button>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+<script src="js/jquery-3.1.1.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/plugins/metisMenu/jquery.metisMenu.js"></script>
+<script src="js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+<!-- Custom and plugin javascript -->
+<script src="js/inspinia.js"></script>
+<script src="js/plugins/pace/pace.min.js"></script>
+<script>
+		function confirmDelete(messageId, event) {
+		if (event) {
+			event.preventDefault();  // Eğer event varsa sayfanın yenilenmesini engelle
+		}
+
+		Swal.fire({
+			title: 'Bu mesajı silmek istediğinizden emin misiniz?',
+			text: "Bu işlem geri alınamaz!",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#d33',
+			cancelButtonColor: '#3085d6',
+			confirmButtonText: 'Evet, sil!',
+			cancelButtonText: 'İptal'
+		}).then((result) => {
+			if (result.isConfirmed) {
+				deleteMessageAjax(messageId);  // AJAX ile silme fonksiyonu çağır
+			}
+		});
+	}
+		function deleteMessageAjax(messageId) {
+		$.ajax({
+			url: "/Admin/AdminMessage/DeleteMessage/" + messageId,
+			type: 'POST',
+			success: function (response) {
+				if (response.success) {
+					Swal.fire({
+						icon: 'success',
+						title: 'Başarılı',
+						text: response.message,
+						timer: 1500,
+						showConfirmButton: false
+					}).then(() => {
+						location.reload();  // Sayfayı yenile
+					});
+				} else {
+					Swal.fire({
+						icon: 'error',
+						title: 'Hata',
+						text: 'Silme işlemi başarısız oldu!'
+					});
+				}
+			},
+			error: function () {
+				Swal.fire({
+					icon: 'error',
+					title: 'Hata',
+					text: 'Bir hata oluştu!'
+				});
+			}
+		});
+	}
+</script>
+
+
+
+

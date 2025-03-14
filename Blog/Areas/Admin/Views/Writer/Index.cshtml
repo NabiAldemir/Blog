@@ -1,0 +1,143 @@
+﻿@model IEnumerable<EntityLayer.Concrete.AppUser>
+@{
+	ViewData["Title"] = "Index";
+	Layout = "~/Views/Shared/AdminLayout.cshtml";
+}
+<table class="table table-bordered" id ="UserTable">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>İsim & Soyisim</th>
+			<th>E-Mail</th>
+			<th>Kullanıcı Adı</th>
+			<th>Kullanıcı SİL</th>
+			<th>Kullanıcı DÜZENLE</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model){
+			<tr>
+				<th>@item.Id</th>
+				<td>@item.NameSurname</td>
+				<td>@item.Email</td>
+				<td>@item.UserName</td>
+				<td>
+					<button type="button" class="btn btn-danger" onclick="deleteUser(@item.Id)">SİL</button>
+				</td>
+				<td>
+					<button type="button" class="btn btn-success" onclick="openUpdateModal(this)" data-uname="@item.UserName" data-name="@item.NameSurname" data-mail="@item.Email" data-id="@item.Id">DÜZENLE</button>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<!-- Add Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addModalLabel">Yazar Düzenle</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="updateForm" form method="post">
+					<input type="text" class="form-control" name="Id" id="userid" hidden>
+					<div class="mb-12">
+						<label for="name" class="form-label">İsim & Soyisim</label>
+						<input type="text" class="form-control" name="NameSurname" id ="namesurname" required>
+					</div>
+					<div class="mb-12">
+						<label for="name" class="form-label">E-Mail</label>
+						<input type="text" class="form-control" name="Email" id="email" required>
+					</div>
+					<br />
+					<div class="mb-12">
+						<label for="name" class="form-label">Kullanıcı Adı</label>
+						<input type="text" class="form-control" name="UserName" id="username" required>
+					</div>
+					<button type="submit" class="btn btn-primary">Kaydet</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section scripts{
+<script>
+	function deleteUser(UserID){
+				Swal.fire({
+				title: 'Bu kullanıcıyı silmek istediğinizden emin misiniz?',
+				text: "Bu işlem geri alınamaz!",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#3085d6',
+				confirmButtonText: 'Evet, sil!',
+				cancelButtonText: 'İptal'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.ajax({
+				url: "/Admin/Writer/Delete/" + UserID,
+				method: 'POST',
+				success: function (response) {
+					if (response.success) {
+						toastr.success('Silme İşlemi Başarılı!');
+							$("#UserTable").load(location.href + " #UserTable");
+
+					} else {
+						toastr.error(response.errors.join('\n'));
+					}
+				},
+				error: function () {
+					toastr.error('Bir Hata Oluştu!');
+				}
+			});
+				}
+			});
+		}
+		function openUpdateModal(button){
+		let name =button.getAttribute("data-name");
+		let mail =button.getAttribute("data-mail");
+		let uname =button.getAttribute("data-uname");
+		let id =button.getAttribute("data-id");
+		
+		document.getElementById("namesurname").value=name;
+		document.getElementById("email").value=mail;
+		document.getElementById("username").value=uname;
+		document.getElementById("userid").value=id;
+		$('#updateModal').modal('show')
+		}
+
+		$(document).ready(function () {
+				$("#updateForm").submit(function (e) {
+				e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+				var formData = {
+					NameSurname:$("#namesurname").val(),
+					Email:$("#email").val(),
+					UserName:$("#username").val(),
+					Id:$("#userid").val(),
+				};
+
+				$.ajax({
+					type: "POST",
+					url: "/Admin/Writer/Update",
+					data: formData,
+					success: function (response) {
+							if (response.success) {
+								toastr.success("Güncelleme İşlemi Başarılı!");
+								$("#updateModal").modal("hide");
+										$("#UserTable").load(location.href + " #UserTable");
+							}  else {
+							toastr.error("Güncelleme İşlemi Başarısız!");
+						}
+					},
+					error: function () {
+						Swal.fire("Hata!", "Bir hata oluştu, lütfen tekrar deneyin.", "error");
+					}
+				});
+			});
+		});
+</script>
+}

@@ -1,0 +1,40 @@
+﻿@model AddProfileImage
+@{
+    ViewData["Title"] = "AddWriter";
+    Layout = "~/Views/Shared/WriterLayout.cshtml";
+}
+
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Yazar Profil Bilgileri Düzenleme</h4>
+            <br />
+            <form class="forms-sample" id="updateProfileForm" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="WriterID"  hidden>
+                    <label for="exampleInputName1">Yazar Ad & Soyad</label>
+                    <input type="text" class="form-control" name="WriterName" required>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail3">Mail Adresi</label>
+                    <input type="email" class="form-control" name="WriterMail" required>
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword4">Şifre</label>
+                    <input type="text" class="form-control" name="WriterPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Yazar Görseli</label>
+                    <input type="file" class="form-control" name="WriterImage" required />
+                </div>
+                <div class="form-group">
+                    <label for="exampleTextarea1">Yazar Hakkında</label>
+                    <textarea class="form-control" name="WriterAbout" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-gradient-primary mr-2">Kaydet</button>
+                <button class="btn btn-light">Vazgeç</button>
+            </form>
+        </div>
+    </div>
+</div>
+

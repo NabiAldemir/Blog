@@ -1,0 +1,158 @@
+﻿@model IEnumerable<EntityLayer.Concrete.Message2>
+@{
+	ViewData["Title"] = "InBox";
+	Layout = "~/Views/Shared/WriterLayout.cshtml";
+}
+<h1>Gelen Kutusu</h1>
+<table class="table table-bordered">
+	<tr style="text-align:center;">
+		<th>#</th>
+		<th>Konu</th>
+		<th>Gönderen</th>
+		<th>Tarih</th>
+		<th>Mesajı Aç</th>
+	</tr>
+	@foreach (var item in Model)
+	{
+		<tr style="text-align:center;">
+			<th>@item.MessageID</th>
+			<td>@item.Subject</td>
+			<td>@item.SenderUser.NameSurname</td>
+			<td>@(((DateTime)item.MessageDate).ToString("dd-MMM-yyyy"))</td>
+			<td>
+				<button class="btn btn-warning" onclick="openInboxModal(this)" data-subject="@item.Subject" data-sendername="@item.SenderUser.NameSurname" data-date="@(((DateTime)item.MessageDate).ToString("dd-MMM-yyyy"))" data-details="@item.MessageDetails" data-id="@item.MessageID">
+					Mesajı Gör
+				</button>
+			</td>
+
+		</tr>
+	}
+</table>
+<br />
+<a class="btn btn-success" onclick="openSendModal(this)">Yeni Mesaj Oluştur</a>
+
+<!-- InBox Modal -->
+<div class="modal fade" id="inboxModal" tabindex="-1" aria-labelledby="inboxModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header d-flex justify-content-center">
+				<h4 class="modal-title text-center" id="inboxModalLabel">Mesaj İçeriği</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="inboxForm">
+					<div class="mb-12">
+						<input type="text" class="form-control" id="messageId" name="MessageID" hidden>
+					</div>
+					<div class="mb-12">
+						<label for="name" class="form-label">Konu</label>
+						<input type="text" class="form-control" id="subject" name="Subject" readonly>
+					</div>
+					<div class="mb-12">
+						<label for="price" class="form-label">Gönderen Kişi</label>
+						<input type="text" class="form-control" id="writerName" name="WriterName" readonly>
+					</div>
+					<div class="mb-12">
+						<label for="price" class="form-label">Gönderilen Tarih</label>
+						<input type="text" class="form-control" id="messageDate" name="MessageDate" readonly>
+					</div>
+					<br />
+					<div class="mb-12">
+						<label for="description" class="form-label">Blog İçeriği</label>
+						<textarea class="form-control" id="messageDetails" name="MessageDetails" readonly></textarea>
+					</div>
+					<br />
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Kapat</button>
+				</form>
+
+
+			</div>
+		</div>
+	</div>
+</div>
+
+@* SEND MODAL *@
+<div class="modal fade" id="sendModal" tabindex="-1" aria-labelledby="sendModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="sendModalLabel">Yeni Mesaj Oluştur</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="sendForm" form method="post">
+					<label for="ReceiverID">Alıcı Kişi (Mail Adresi)</label>
+					<select class="form-control" id="ReceiverID" name="ReceiverID" required>
+						<option value="">Seçiniz</option>
+						@if (ViewBag.list != null)
+						{
+							foreach (var user in ViewBag.list)
+							{
+								<option value="@user.Value">@user.Text</option>
+							}
+						}
+					</select>
+					<br />
+					<div class="mb-12">
+						<label for="name" class="form-label">Konu</label>
+						<input type="text" class="form-control" name="Subject" required>
+					</div>
+					<br />
+					<div class="mb-12">
+						<label for="name" class="form-label">Mesajınız</label>
+						<input type="text" class="form-control" name="MessageDetails" required>
+					</div>
+					<br />
+					<button type="submit" class="btn btn-primary">Kaydet</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	function openInboxModal(button){
+		let subject = button.getAttribute("data-subject")
+		let sendername = button.getAttribute("data-sendername")
+		let date = button.getAttribute("data-date")
+		let details = button.getAttribute("data-details")
+		let id = button.getAttribute("data-id")
+
+		document.getElementById("subject").value=subject;
+		document.getElementById("writerName").value=sendername;
+		document.getElementById("messageDate").value=date;
+		document.getElementById("messageDetails").value=details;
+		document.getElementById("messageId").value=id;
+		$("#inboxModal").modal("show");
+	}
+
+	function openSendModal(button)
+	{
+		$("#sendModal").modal("show");
+	}
+
+	document.addEventListener("DOMContentLoaded", function() {
+			$("#sendForm").submit(function (e) {
+				e.preventDefault();
+
+				$.ajax({
+					type: "POST",
+					url: "/Message/SendMessage",
+					data: $(this).serialize(),
+					dataType: "json", // 🟢 JSON formatında beklediğimizi belirtiyoruz
+					success: function (response) {
+						if (response.success) {
+							toastr.success("Mesaj Gönderme Başarılı!");
+							$("#sendModal").modal("hide");
+							setTimeout(() => { location.reload(); }, 1000);
+						} else {
+							toastr.error("Mesaj Gönderme Başarısız!");
+						}
+					},
+					error: function () {
+						Swal.fire("Hata!", "İşlem sırasında hata oluştu!", "error");
+					}
+				});
+			});
+		});
+</script>

@@ -1,0 +1,48 @@
+﻿@using EntityLayer.Concrete
+@model List<Blog>
+<div class="comment-top">
+	<h4>Yorum Yap</h4>
+	<div class="comment-bottom">
+		<form id="AddCommentForm" method="post">
+			<input class="form-control" asp-for="@Model.FirstOrDefault().BlogID" type="text" hidden id="id" />
+			<input class="form-control" type="text" name="CommentUserName" placeholder="Adınız & Soyadınız" id="nameInput" required="">
+			<input class="form-control" type="text" name="CommentTitle" placeholder="Konu Başlığı" id="titleInput" required="">
+			<textarea class="form-control" name="CommentContent" placeholder="Yorumunuz..." id="contentInput" required=""></textarea>
+			<button id="btnadd" type="submit" class="btn btn-primary submit">Gönder</button>
+		</form>
+	</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	<script>
+		$(document).ready(function () {
+				$("#AddCommentForm").submit(function (e) {
+				e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+				var formData = {
+					BlogID:$("#id").val(),
+					CommentUserName:$("#nameInput").val(),
+					CommentTitle:$("#titleInput").val(),
+					CommentContent:$("#contentInput").val(),
+				};
+				
+
+				$.ajax({
+					type: "POST",
+					url: "/Comment/PartialAddComment",
+					data: formData,
+					success: function (response) {
+							if (response.success) {
+								toastr.success("Yorum Yapma İşlemi Başarılı!");
+								setTimeout(() => {location.reload();},1000);
+							}  else {
+							toastr.error("Yorum Yapma İşlemi Başarısız!");
+						}
+					},
+					error: function () {
+						Swal.fire("Hata!", "Bir hata oluştu, lütfen tekrar deneyin.", "error");
+					}
+				});
+			});
+		});
+	</script>

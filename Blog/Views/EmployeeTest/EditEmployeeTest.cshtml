@@ -1,0 +1,16 @@
+﻿@using BlogWebSite.Controllers
+@model ClassTest
+@{
+    ViewData["Title"] = "EditEmployeeTest";
+    Layout = "~/Views/Shared/AdminLayout.cshtml";
+}
+
+<form method="post">
+    <label>ID</label>
+    <input type="text" class="form-control" asp-for="Id" />
+    <br />
+    <label>İsim</label>
+    <input type="text"class="form-control" asp-for="Name"/>
+    <button class="btn btn-info" >Kaydet</button>
+</form>
+

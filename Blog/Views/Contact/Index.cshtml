@@ -1,0 +1,133 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/UserLayout.cshtml";
+}
+
+<body>
+	<section class="main-content-w3layouts-agileits">
+
+		<h3 class="tittle">Bize Ulaşın!</h3>
+		<p class="sub text-center">Düşüncelerinize Önem Veriyoruz..</p>
+		<div class="contact-map inner-sec">
+
+			<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12284.459527455465!2d32.482846999999996!3d37.8719898!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14d0853a295cb39f%3A0xf28ae5f7e3b47d4!2sKonya%2C%20T%C3%BCrkiye!5e0!3m2!1str!2str!4v1700000000000"
+					class="map" style="border:0" allowfullscreen=""></iframe>
+		</div>
+		<div class="ad-inf-sec bg-light">
+			<div class="container">
+				<div class="address row">
+
+					<div class="col-lg-4 address-grid">
+						<div class="row address-info">
+							<div class="col-md-4 address-left text-center">
+								<i class="far fa-map"></i>
+							</div>
+							<div class="col-md-8 address-right text-left">
+								<h6>Adres</h6>
+								<p>
+									Konya, Türkiye
+
+								</p>
+							</div>
+						</div>
+
+					</div>
+					<div class="col-lg-4 address-grid">
+						<div class="row address-info">
+							<div class="col-md-4 address-left text-center">
+								<i class="far fa-envelope"></i>
+							</div>
+							<div class="col-md-8 address-right text-left">
+								<h6>Email</h6>
+								<p>
+									Email :
+									<a href="mailto:example@email.com"> blog@example.com</a>
+
+								</p>
+							</div>
+
+						</div>
+					</div>
+					<div class="col-lg-4 address-grid">
+						<div class="row address-info">
+							<div class="col-md-4 address-left text-center">
+								<i class="fas fa-mobile-alt"></i>
+							</div>
+							<div class="col-md-8 address-right text-left">
+								<h6>Telefon</h6>
+								<p>+90 234 567 8901</p>
+
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="contact_grid_right">
+				<form id="ContactForm">
+					<div class="row contact_left_grid">
+						<div class="col-md-6 con-left">
+							<div class="form-group">
+								<label for="validationCustom01 my-2">İsim</label>
+								<input class="form-control" type="text" name="ContactUserName" id="uname" required="">
+							</div>
+							<div class="form-group">
+								<label for="exampleFormControlInput1">Mail</label>
+								<input class="form-control" type="email" name="ContactMail" id="mail" required="">
+							</div>
+							<div class="form-group">
+								<label for="validationCustom03 my-2">Konu</label>
+								<input class="form-control" type="text" name="ContactSubject" id="subject" required="">
+							</div>
+						</div>
+						<div class="col-md-6 con-right">
+							<div class="form-group">
+								<label for="textarea">Mesaj</label>
+								<textarea  name="ContactMessage" id ="message"  ></textarea>
+							</div>
+							<input class="form-control" type="submit" value="Submit">
+
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+	$(document).ready(function () {
+		$("#ContactForm").submit(function (e) {
+			e.preventDefault(); // Sayfanın yenilenmesini engeller
+
+			var formData = {
+				ContactUserName:$("#uname").val(),
+				ContactMail:$("#mail").val(),
+				ContactSubject:$("#subject").val(),
+				ContactMessage:$("#message").val(),
+			} 
+
+			$.ajax({
+				type: "POST",
+				url: "/Contact/Index",
+				data: formData,
+				success: function (response) {
+					if(response.success)
+					{
+					toastr.success("Mesaj Başarıyla Gönderildi!");
+					$("#ContactForm")[0].reset(); // Formu temizle
+					}
+					else{
+						toastr.error("Bir Hata Oluştu!");
+					}
+				},
+				error:function(){
+					toastr.error("İşlem Başarısız!")
+				}
+			});
+		});
+	});
+</script>

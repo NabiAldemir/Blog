@@ -1,0 +1,240 @@
+﻿@using EntityLayer.Concrete
+@model List<Blog>
+@{
+	ViewData["Title"] = "BlogListByWriter";
+	Layout = "~/Views/Shared/WriterLayout.cshtml";
+}
+
+<table class="table table-bordered">
+	<tr>
+		<th>#</th>
+		<th>Blog Başlığı</th>
+		<th>Oluşturma Tarihi</th>
+		<th>Kategori</th>
+		<th>Durum</th>
+		<th>Sil</th>
+		<th>Düzenle</th>
+	</tr>
+	@foreach (var item in Model)
+	{
+		<tr>
+			<th>@item.BlogID</th>
+			<td>@item.BlogTitle</td>
+			<td>@(((DateTime)item.BlogCreateDate).ToString("dd-MMM-yyyy"))</td>
+			<td>@item.Category.CategoryName</td>
+			<td>
+				@if (item.BlogStatus)
+				{
+					<span class="badge badge-success">Aktif</span>
+				}
+				else
+				{
+					<span class="badge badge-secondary">Pasif</span>
+				}
+			</td>
+			<td><button class="btn btn-danger" onclick="confirmDelete(@item.BlogID)">Sil</button></td>
+			<td>
+				<button class="btn btn-warning" onclick="openUpdateModal(this)" data-thumbnail="@item.BlogThumbnailImage" data-content="@item.BlogContent" data-title="@item.BlogTitle" data-categoryId="@item.CategoryID" data-image="@item.BlogImage" data-id="@item.BlogID">
+					Bloğu Düzenle
+				</button>
+			</td>
+
+		</tr>
+	}
+
+</table>
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addModalLabel">Yeni Blog Oluştur</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="addForm" form method="post">
+					<div class="mb-12">
+						<label for="name" class="form-label">Blog Başlığı</label>
+						<input type="text" class="form-control" id="name" name="BlogTitle" required>
+					</div>
+					<div class="mb-12">
+						<label for="price" class="form-label">Blog Görseli</label>
+						<input type="text" class="form-control" id="price" name="BlogImage" required>
+					</div>
+					<div class="mb-12">
+						<label for="price" class="form-label">Blog Küçük Görseli</label>
+						<input type="text" class="form-control" id="price" name="BlogThumbnailImage" required>
+					</div>
+					<br />
+					<label for="price" class="form-label">Blog Kategorisi</label>
+					<select required class="form-control" name="CategoryId">
+						<option value="">Kategori Seçiniz</option>
+						@foreach (var item in ViewBag.list)
+						{
+							<option value="@item.Value">@item.Text</option>
+						}
+					</select>
+					<br />
+					<div class="mb-12">
+						<label for="description" class="form-label">Blog İçeriği</label>
+						<textarea class="form-control" id="description" name="BlogContent" required></textarea>
+					</div>
+					<br />
+					<button type="submit" class="btn btn-primary">Kaydet</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="updateModalLabel">Bloğu Güncelle</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="updateForm" form method="post">
+					<div class="mb-12">
+						<input type="text" class="form-control" id="blogId" name="BlogId" hidden>
+					</div>
+					<div class="mb-12">
+						<label for="name" class="form-label">Blog Başlığı</label>
+						<input type="text" class="form-control" id="blogTitle" name="BlogTitle" required>
+					</div>
+					<div class="mb-12">
+						<label for="price" class="form-label">Blog Görseli</label>
+						<input type="text" class="form-control" id="blogImage" name="BlogImage" required>
+					</div>
+					<div class="mb-12">
+						<label for="price" class="form-label">Blog Küçük Görseli</label>
+						<input type="text" class="form-control" id="blogThumbnailImage" name="BlogThumbnailImage" required>
+					</div>
+					<br />
+					<label for="price" class="form-label">Blog Kategorisi</label>
+					<select required class="form-control" id="categoryId" name="CategoryId">
+						<option value="">Kategori Seçiniz</option>
+						@foreach (var item in ViewBag.list)
+						{
+							<option value="@item.Value">@item.Text</option>
+						}
+					</select>
+					<br />
+					<div class="mb-12">
+						<label for="description" class="form-label">Blog İçeriği</label>
+						<textarea class="form-control" id="blogContent" name="BlogContent" required></textarea>
+					</div>
+					<br />
+					<button type="submit" class="btn btn-primary">Kaydet</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
+	Yeni Blog Oluştur
+</button>
+<!-- SweetAlert2 Kütüphanesini Ekle -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+
+		$(document).ready(function () {
+			$("#addForm").submit(function (e) {
+				e.preventDefault();
+
+				$.ajax({
+					type: "POST",
+					url: "/Blog/AddBlog",
+					data: $(this).serialize(),
+					dataType: "json", // 🟢 JSON formatında beklediğimizi belirtiyoruz
+					success: function (response) {
+						if (response.success) {
+							toastr.success("Blog Oluşturma Başarılı!");
+							$("#addModal").modal("hide");
+							setTimeout(() => { location.reload(); }, 1000);
+						} else {
+							toastr.error("Blog Oluşturma Başarısız! " + response.message);
+						}
+					},
+					error: function () {
+						Swal.fire("Hata!", "İşlem sırasında hata oluştu!", "error");
+					}
+				});
+			});
+		});
+	//Silme İşlemi öncesi uyarı
+		 function confirmDelete(blogId) {
+			Swal.fire({
+				title: 'Bu bloğu silmek istediğinizden emin misiniz?',
+				text: "Bu işlem geri alınamaz!",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#3085d6',
+				confirmButtonText: 'Evet, sil!',
+				cancelButtonText: 'İptal'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					window.location.href = "/Blog/DeleteBlog/" + blogId;
+				}
+			});
+		}
+	//Update İşlemi için
+		$(document).ready(function () {
+			$("#updateForm").submit(function (e) {
+				e.preventDefault(); // Sayfanın yeniden yüklenmesini engelle
+
+				var formData = {
+					BlogTitle: $("#blogTitle").val(),
+					BlogThumbnailImage: $("#blogThumbnailImage").val(),
+					BlogContent: $("#blogContent").val(),
+					BlogImage: $("#blogImage").val(),
+					CategoryID: $("#categoryId").val(),
+					BlogID: $("#blogId").val(),
+
+				};
+
+				$.ajax({
+					type: "POST",
+					url: "/Blog/EditBlog",
+					data: formData,
+					success: function (response) {
+							if (response.success) {
+								toastr.success("Güncelleme İşlemi Başarılı!");
+								$("#updateModal").modal("hide");
+								setTimeout(() => { location.reload(); }, 1000);
+							}  else {
+							toastr.error("Güncelleme İşlemi Başarısız!");
+						}
+					},
+					error: function () {
+						Swal.fire("Hata!", "Bir hata oluştu, lütfen tekrar deneyin.", "error");
+					}
+				});
+			});
+		});
+
+		// Güncelleme Modalına Veri Doldurma
+		function openUpdateModal(button) {
+			let thumbnail = button.getAttribute("data-thumbnail");
+			let title = button.getAttribute("data-title");
+			let content = button.getAttribute("data-content");
+			let image = button.getAttribute("data-image");
+			let categoryId = button.getAttribute("data-categoryId");
+			let id = button.getAttribute("data-id");
+
+			document.getElementById("blogThumbnailImage").value=thumbnail;
+			document.getElementById("blogTitle").value=title;
+			document.getElementById("blogContent").value=content;
+			document.getElementById("blogImage").value=image;
+			document.getElementById("categoryId").value=categoryId;
+			document.getElementById("blogId").value=id;
+			$("#updateModal").modal("show");
+		}
+</script>
+
+
+
